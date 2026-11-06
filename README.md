@@ -1,3 +1,4 @@
+
 # Campus Supply Desk
 
 This program is intentionally imperfect. Your assignment is to understand, test, and improve it—not to rewrite it.
@@ -63,6 +64,7 @@ Type an option number and press Enter. The program will guide you through the re
 - Quotes do not create orders or reserve stock.
 - Placement and cancellation require confirmation.
 - Choose `0` to exit. You can also press `Ctrl+C`.
+- Fulfillment options are `pickup`, `delivery`, and `express`.
 
 If your system uses `py -3` on Windows or `python3` on macOS/Linux, substitute that for `python` in the commands throughout this README.
 
@@ -87,6 +89,27 @@ With sufficient stock available, the quote should show a **$10.00 total**.
 
 No order has been placed. To purchase items, choose **3 — Place an order** from the menu and follow the prompts.
 
+### Express Delivery (CR-01)
+
+The application supports three fulfillment options:
+
+- `pickup` — No delivery fee.
+- `delivery` — Standard delivery costs $6.00, but is free when the discounted merchandise subtotal is at least $100.00.
+- `express` — Express delivery always costs $12.00, even when standard delivery would be free.
+
+Express delivery is available for both regular and student customers.
+
+Student discount eligibility and rounding remain unchanged. The student discount applies only to merchandise, not delivery charges.
+
+For example, two hoodies for a student customer with express delivery cost:
+
+- Merchandise subtotal: $80.00
+- Student discount: $8.00
+- Express delivery: $12.00
+- Final total: $84.00
+
+The default customer type remains `regular`, and the default fulfillment remains `pickup`.
+
 ## 3. Running the tests
 
 From the folder containing `README.md`, `supplydesk`, and `tests`, run:
@@ -95,23 +118,31 @@ From the folder containing `README.md`, `supplydesk`, and `tests`, run:
 python -m unittest discover -s tests -v
 ```
 
-The supplied tests should finish with:
+The current test suite contains 15 tests:
+
+- 4 original smoke tests.
+- 4 additional tests covering normal behavior, boundary behavior, invalid input, and preservation of existing behavior.
+- 7 new tests covering Express Delivery.
+
+A successful run should finish with:
 
 ```text
-Ran 4 tests
+Ran 15 tests
 
 OK
 ```
 
-These four tests are a starting point. **Passing them does not mean every required behavior is correct.** You will add meaningful tests as part of the assignment.
+Passing tests provide evidence for the tested behaviors but do not guarantee that every possible case is correct.
 
-The supplied tests use temporary files and do not change your saved orders or stock.
+The tests use temporary files and do not change your saved orders or stock.
 
 ## 4. Saved data and practice sessions
 
 The program automatically saves orders and stock levels in `.supplydesk/state.json`. When you close and reopen it, you continue where you left off.
 
 Simply viewing products or requesting a quote does not create a save file.
+
+Express orders retain their fulfillment type, original items, delivery charge, discount, and total when saved, reopened, or cancelled.
 
 ### Start a fresh practice session
 
@@ -149,10 +180,12 @@ Avoid running two instances that change the same save file simultaneously.
 - **`FUNCTIONAL_SPEC.md`** — Intended business behavior and application scope.
 - **`supplydesk/cli.py`** — Individual command handling and entry point for the menu.
 - **`supplydesk/menu.py`** — Interactive prompts and readable output.
-- **`supplydesk/service.py`** — Quotes, orders, inventory operations, and cancellation.
+- **`supplydesk/service.py`** — Quotes, orders, inventory operations, cancellation, and Express Delivery pricing.
 - **`supplydesk/storage.py`** — Loading and saving local JSON data.
 - **`supplydesk/catalog.json`** — Initial products, prices, and stock for a new session.
 - **`tests/test_smoke.py`** — Four starter tests.
+- **`tests/test_additional.py`** — Additional behavior and Express Delivery tests.
+- **`CR-01.md`** — Express Delivery change request.
 
 The menu and individual commands use the same service and saved data. When a later requirement affects available choices or displayed information, review both interfaces.
 
@@ -174,6 +207,22 @@ python -m supplydesk quote --customer regular --item notebook:2
 python -m supplydesk quote --customer student --fulfillment delivery --item hoodie:2
 ```
 
+For Express Delivery, run:
+
+```sh
+python -m supplydesk quote --customer student --fulfillment express --item hoodie:2
+```
+
+The expected total is `8400` cents ($84.00 CAD).
+
+Another example:
+
+```sh
+python -m supplydesk quote --customer regular --fulfillment express --item notebook:2
+```
+
+The expected total is `2200` cents ($22.00 CAD).
+
 Use repeated `--item` options for multiple items:
 
 ```sh
@@ -187,6 +236,12 @@ python -m supplydesk place --customer regular --item mug:1
 python -m supplydesk orders
 python -m supplydesk show ORD-0001
 python -m supplydesk cancel ORD-0001
+```
+
+To place an Express Delivery order:
+
+```sh
+python -m supplydesk place --customer regular --fulfillment express --item notebook:2
 ```
 
 Replace `ORD-0001` with the actual ID returned when you place your order.
@@ -214,3 +269,5 @@ These commands use the same orders and stock as the interactive menu opened with
 python -m supplydesk --help
 python -m supplydesk quote --help
 ```
+
+The quote and place commands support `--fulfillment pickup`, `--fulfillment delivery`, and `--fulfillment express`.
